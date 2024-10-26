@@ -31,7 +31,7 @@ const CreatePost = () => {
         categories: categories.filter(category => category !== ''),
       };
 
-      fetch('/posts', {
+      fetch('https://inkspace-1.onrender.com/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

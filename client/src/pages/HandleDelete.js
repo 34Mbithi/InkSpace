@@ -48,7 +48,7 @@ export const handleDelete = (id, navigate) => {
 };
 
 const deletePost = (id, navigate) => {
-  fetch(`/posts/${id}`, {
+  fetch(`https://inkspace-1.onrender.com/posts/${id}`, {
     method: 'DELETE',
     credentials: 'include',
   })

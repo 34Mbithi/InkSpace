@@ -19,7 +19,7 @@ app = Flask(
     static_folder=client_build_path,
     template_folder=client_build_path
 )
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL','sqlite:///inkspace.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI','postgresql://inkspace:al7YZDOwvR2MaXOfLjQTpshyQqFeio24@dpg-cseakb3tq21c7387mip0-a.oregon-postgres.render.com/inkspacedb_fyau')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 

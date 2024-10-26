@@ -14,7 +14,7 @@ const PostDetail = () => {
     const [userId, setUserId] = useState(null);
 
     useEffect(() => {
-        fetch(`/posts/${id}`)
+        fetch(`https://inkspace-1.onrender.com/posts/${id}`)
             .then(res => res.json())
             .then(data => {
                 setPost(data);
@@ -83,7 +83,7 @@ const PostDetail = () => {
     });
 
     const handleCommentSubmit = (values, { resetForm }) => {
-        fetch(`/posts/${id}/comments`, {
+        fetch(`https://inkspace-1.onrender.com/posts/${id}/comments`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

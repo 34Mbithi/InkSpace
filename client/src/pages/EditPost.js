@@ -12,7 +12,7 @@ const EditPost = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`/posts/${id}`)
+        fetch(`https://inkspace-1.onrender.com/posts/${id}`)
             .then(res => {
                 if (!res.ok) {
                     throw new Error('Network response was not ok');
@@ -41,7 +41,7 @@ const EditPost = () => {
     }
 
     const handleSubmit = (values) => {
-        fetch(`/posts/${id}`, {
+        fetch(`https://inkspace-1.onrender.com/posts/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

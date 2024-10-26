@@ -7,7 +7,7 @@ const Profile = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('/profile', {
+    fetch('https://inkspace-1.onrender.com/profile', {
       method: 'GET',
       credentials: 'include',
     })
