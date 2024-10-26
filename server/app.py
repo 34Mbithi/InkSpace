@@ -19,7 +19,7 @@ app.config['SECRET_KEY'] = 'f550003f7c3dc2211c5ef4ec3a1f50ce123e11ec4b40f23aeb5e
 
 # Login required decorator
 def login_required(f):
-    @wraps(f)  # Preserves the function name and docstring
+    @wraps(f)
     def wrap(*args, **kwargs):
         if 'user_id' not in session:
             return make_response(jsonify({'message': 'You need to log in first.'}), 401)
@@ -29,30 +29,29 @@ def login_required(f):
 class Register(Resource):
     def post(self):
         data = request.get_json()
+        if not data:
+            return make_response(jsonify({'message': 'No input data provided'}), 400)
+        
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
 
         # Check if user already exists
-        user = User.query.filter_by(email=email).first()
-        if user:
+        if User.query.filter_by(email=email).first():
             return make_response(jsonify({"message": "User already exists"}), 400)
 
         # Create new user
-        new_user = User(username=username, email=email)
-        new_user.password_hash = generate_password_hash(password)
+        new_user = User(username=username, email=email, password_hash=generate_password_hash(password))
         
         try:
             db.session.add(new_user)
             db.session.commit()
             session['user_id'] = new_user.id  # Set session user_id
-
             return make_response(jsonify({"message": "User created successfully", "token": "your_token_here"}), 201)
         
         except IntegrityError as e:
             db.session.rollback()
-            print(f"IntegrityError: {e}")
-            return make_response(jsonify({'error': '422 Unprocessable Entity'}), 422)
+            return make_response(jsonify({'error': 'IntegrityError: Unable to process the entity'}), 422)
 
 class CheckSession(Resource):
     def get(self):
@@ -66,6 +65,9 @@ class CheckSession(Resource):
 class Login(Resource):
     def post(self):
         data = request.get_json()
+        if not data:
+            return make_response(jsonify({'message': 'No input data provided'}), 400)
+        
         email = data.get('email')
         password = data.get('password')
 
@@ -92,16 +94,14 @@ class Logout(Resource):
         session.pop('user_id', None)
         return make_response(jsonify({"message": "Logged out successfully"}), 204)
 
-# BlogPost Resource
 class BlogPostResource(Resource):
     @login_required
     def get(self, post_id=None):
         if post_id:
             post = BlogPost.query.get_or_404(post_id)
             return jsonify(post.to_dict())
-        else:
-            posts = BlogPost.query.all()
-            return jsonify([post.to_dict() for post in posts])
+        posts = BlogPost.query.all()
+        return jsonify([post.to_dict() for post in posts])
 
     @login_required
     def post(self):
@@ -114,9 +114,7 @@ class BlogPostResource(Resource):
             return make_response(jsonify({'message': 'Missing title or content'}), 400)
 
         user_id = session['user_id']
-        user = User.query.get_or_404(user_id)
-
-        post = BlogPost(title=title, content=content, author=user)
+        post = BlogPost(title=title, content=content, author_id=user_id)
 
         for name in category_names:
             category = Category.query.filter_by(name=name).first()
@@ -133,7 +131,7 @@ class BlogPostResource(Resource):
     def put(self, post_id):
         post = BlogPost.query.get_or_404(post_id)
         user_id = session['user_id']
-        if post.user_id != user_id:
+        if post.author_id != user_id:
             return make_response(jsonify({'message': 'Forbidden: You are not the author of this post'}), 403)
         
         data = request.get_json()
@@ -156,14 +154,13 @@ class BlogPostResource(Resource):
     def delete(self, post_id):
         post = BlogPost.query.get_or_404(post_id)
         user_id = session['user_id']
-        if post.user_id != user_id:
+        if post.author_id != user_id:
             return make_response(jsonify({'message': 'Forbidden: You are not the author of this post'}), 403)
 
         db.session.delete(post)
         db.session.commit()
         return make_response(jsonify({'message': 'Blog post deleted successfully'}), 204)
 
-# Comment Resource
 class CommentResource(Resource):
     @login_required
     def get(self, post_id):
@@ -179,9 +176,7 @@ class CommentResource(Resource):
             return make_response(jsonify({'message': 'Missing content'}), 400)
 
         user_id = session['user_id']
-        user = User.query.get_or_404(user_id)
-
-        comment = Comment(content=content, post=post, author=user)
+        comment = Comment(content=content, post_id=post.id, author_id=user_id)
         db.session.add(comment)
         db.session.commit()
 
@@ -194,7 +189,6 @@ class CommentResource(Resource):
         db.session.commit()
         return make_response(jsonify({'message': 'Comment deleted'}), 204)
 
-# Category Resource
 class CategoryResource(Resource):
     @login_required
     def get(self):
